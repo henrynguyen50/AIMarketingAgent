@@ -21,7 +21,7 @@ import requests
 api_url = "http://127.0.0.1:8000/gentweet"
 
 payload = {
-    "query": "Make a tweet for njpw"
+    "query": "Make a tweet for stardom"
 }
 
 try:
@@ -30,7 +30,10 @@ try:
     if response.status_code == 200:
         print("Success! API Response:")
         # Print the JSON data returned by the API
-        print(response.json())
+        res = response.json()
+        tweet = res['tweet']
+        tweet = tweet.strip() 
+        client.create_tweet(text=tweet)
     else:
         print(f"Error: Received status code {response.status_code}")
         print("Response:", response.text)
@@ -39,4 +42,4 @@ except requests.exceptions.ConnectionError as e:
     print(f"Connection Error: Could not connect to the server at {api_url}.")
     print("Please make sure your FastAPI server is running.")
 
-#client.create_tweet(text="Wanna watch the G1 climax? This extension has all the needed links for wrestling chromewebstore.google.com/detail/the-stream-cleaner/khfgjcfkhmldbedicijbaekgkoniemmp")
+
