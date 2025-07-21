@@ -10,7 +10,6 @@ bearer_token= os.getenv("bearer_token")
 access_token =os.getenv("access_token")
 access_token_secret=os.getenv("access_token_secret")
 
-
 client = tweepy.Client(bearer_token, api_key, api_secret, access_token, access_token_secret)
 
 auth = tweepy.OAuth1UserHandler(api_key, api_secret, access_token, access_token_secret)
@@ -21,7 +20,7 @@ import requests
 api_url = "http://127.0.0.1:8000/gentweet"
 
 payload = {
-    "query": "Make a tweet for stardom"
+    "query": "Make a tweet for nfl"
 }
 
 try:
@@ -33,7 +32,8 @@ try:
         res = response.json()
         tweet = res['tweet']
         tweet = tweet.strip() 
-        client.create_tweet(text=tweet)
+        print(tweet)
+        #client.create_tweet(text=tweet)
     else:
         print(f"Error: Received status code {response.status_code}")
         print("Response:", response.text)
