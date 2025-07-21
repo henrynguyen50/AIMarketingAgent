@@ -66,7 +66,7 @@ def get_events(request: QueryRequest): #request is the query
             "event": document[idx]
         })
     
-    prompt = f"Generate tweet based off this: {query}, using this context {context}, should be like *event* is on *date* watch it free and without chatboxes or clickon ads using my extension Link in bio. Use correct past/present/future tense based on date, if event was in the past mention that. Always mention chatboxes and clickon ads. Never use () or \n. Be creative"
+    prompt = f"Generate tweet based off this: {query}, using this context {context}, should be like *event* is on *date*(always convert date to something like July 12th) watch it free and without chatboxes or clickon ads using my extension Link in bio. Use correct past/present/future tense based on date, if event was in the past mention that. Always mention access to free sites, chatboxes, and clickon ads. Never use () or \n. Be creative"
 
     response = gem_client.models.generate_content(
         model="gemini-2.0-flash",
