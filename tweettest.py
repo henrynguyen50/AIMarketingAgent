@@ -1,11 +1,26 @@
+import tweepy
+import os 
 import requests
 from google import genai
+from dotenv import load_dotenv
+load_dotenv()
+api_key =os.getenv("api_key")
+api_secret =os.getenv("api_secret")
+bearer_token= os.getenv("bearer_token")
+access_token =os.getenv("access_token")
+access_token_secret=os.getenv("access_token_secret")
+
+client = tweepy.Client(bearer_token, api_key, api_secret, access_token, access_token_secret)
+
+auth = tweepy.OAuth1UserHandler(api_key, api_secret, access_token, access_token_secret)
+api = tweepy.API(auth)
+
 import requests
 
 api_url = "http://127.0.0.1:8000/gentweet"
 
 payload = {
-    "query": "Make a tweet for NFL"
+    "query": "Make a tweet for aew"
 }
 
 try:
@@ -18,13 +33,6 @@ try:
         tweet = res['tweet']
         tweet = tweet.strip() 
         print(tweet)
-
-        api_url = "http://127.0.0.1:8000/posttweet"
-
-        payload = {
-            "query": tweet
-        }
-        response = requests.post(api_url, json=payload)
     else:
         print(f"Error: Received status code {response.status_code}")
         print("Response:", response.text)
