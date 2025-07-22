@@ -1,6 +1,7 @@
 from fastapi import FastAPI, Request, Depends
 from pydantic import BaseModel #like requests from flask
 import numpy as np
+import tweepy
 import joblib
 from sentence_transformers import SentenceTransformer, util
 from fastapi.middleware.cors import CORSMiddleware
@@ -22,6 +23,17 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
+api_key =os.getenv("api_key")
+api_secret =os.getenv("api_secret")
+bearer_token= os.getenv("bearer_token")
+access_token =os.getenv("access_token")
+access_token_secret=os.getenv("access_token_secret")
+
+client = tweepy.Client(bearer_token, api_key, api_secret, access_token, access_token_secret)
+
+auth = tweepy.OAuth1UserHandler(api_key, api_secret, access_token, access_token_secret)
+api = tweepy.API(auth)
 gemini_key=os.getenv("GEMINI_API_KEY")
 # The client gets the API key from the environment variable `GEMINI_API_KEY`.
 gem_client = genai.Client(api_key=gemini_key)
@@ -52,10 +64,8 @@ def get_events(request: QueryRequest): #request is the query
     if not query:
         return {"error": "Query is required"}, 400
 
-    #encode query using model
     query_embedding = model.encode(query)
 
-    #now use cosine similarity to get closest movies
     
     top_results = util.semantic_search(query_embedding, embeddings, top_k=5)[0] #[0] to remove the query number so only have tensor scores 
     context = []
@@ -66,14 +76,19 @@ def get_events(request: QueryRequest): #request is the query
             "event": document[idx]
         })
     
-    prompt = f"Generate tweet based off this: {query}, using this context {context}, should be like *event* is on *date*(always convert date to something like July 12th) watch it free and without chatboxes or clickon ads using my extension Link in bio. Use correct past/present/future tense based on date, if event was in the past mention that. Always mention access to free sites, chatboxes, and clickon ads. Never use () or \n. Be creative"
-
+    prompt = f"Generate tweet: {query}, using this context {context}, watch it free and without chatboxes or popup ads using my extension Link in bio. Always mention access to free sites, chatboxes, and clickon ads. Never use () or \n. Creative without being random and try to keep tweet under 2 sentences"
+ 
     response = gem_client.models.generate_content(
         model="gemini-2.0-flash",
         contents=prompt,
     )
 
     return {"tweet": response.text}
+
+@app.get("/posttweet")
+def post_tweet(request: QueryRequest): #request is the query
+    query = request.query.strip()
+    client.create_tweet(text=query)
 
 
 #to run do uvicorn backend.app:app --reload , dont use reload if testing test cases
