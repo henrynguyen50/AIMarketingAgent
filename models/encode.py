@@ -6,14 +6,15 @@ import joblib
 model = SentenceTransformer('sentence-transformers/paraphrase-albert-small-v2')
 
 file_path='scripts/sportsevents.txt'
+def encode_events():
+    with open(file_path, 'r') as f:
+        document= f.readlines()
 
-with open(file_path, 'r') as f:
-    document= f.readlines()
+    print("Making embeddings")
+    embeddings = model.encode(document)
 
-print("Making embeddings")
-embeddings = model.encode(document)
+    #save embeddings then dataframe 
+    np.save("models/events.npy", embeddings)
+    print("Embeddings saved")
+    print(embeddings.shape)
 
-#save embeddings then dataframe 
-np.save("models/events.npy", embeddings)
-print("Embeddings saved")
-print(embeddings.shape)
