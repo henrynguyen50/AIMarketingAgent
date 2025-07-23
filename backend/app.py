@@ -39,18 +39,27 @@ gemini_key=os.getenv("GEMINI_API_KEY")
 # The client gets the API key from the environment variable `GEMINI_API_KEY`.
 gem_client = genai.Client(api_key=gemini_key)
 
+model = SentenceTransformer('sentence-transformers/paraphrase-albert-small-v2')
+
+EMBEDDINGS_PATH = "models/events.npy"
+DOCUMENT_PATH = "scripts/sportsevents.txt"
 
 
-file_path='scripts/sportsevents.txt'
-with open(file_path, 'r') as f:
-    document= f.readlines()
+#need to be refreshed when agent runs
+embeddings = None
+document = None
+
 #convert the JSON query to a string
 class QueryRequest(BaseModel):
     query: str
 
-print("load models")
-model = SentenceTransformer('sentence-transformers/paraphrase-albert-small-v2')
-embeddings = np.load("models/events.npy") #load mebeddings using numpy
+def load_embeddings():
+    global embeddings, document
+    embeddings = np.load(EMBEDDINGS_PATH)
+    with open(DOCUMENT_PATH, "r") as f:
+        document = f.readlines()
+
+
 
 #first api request POST, send user input
 
@@ -60,6 +69,7 @@ def home():
 
 @app.post("/gentweet", dependencies=[Depends(RateLimiter(requests_limit = 10, time_window=60))])
 def get_events(request: QueryRequest): #request is the query
+    
     query = request.query.strip()
 
     if not query:
@@ -91,5 +101,8 @@ def post_tweet(request: QueryRequest): #request is the query
     query = request.query.strip()
     client.create_tweet(text=query)
 
+@app.post("/refresh")
+def refresh_embeddings():
+    load_embeddings()
 
 #to run do uvicorn backend.app:app --reload , dont use reload if testing test cases
