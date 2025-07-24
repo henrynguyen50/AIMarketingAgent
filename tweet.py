@@ -51,3 +51,5 @@ def genTweet():
         print("Please make sure your FastAPI server is running.")
 
 
+if __name__ == "__main__":
+    genTweet()
