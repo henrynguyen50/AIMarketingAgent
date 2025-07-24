@@ -95,9 +95,17 @@ def get_events(request: QueryRequest): #request is the query
         context.append({
             "event": events[idx]
         })
-    print(context)
     today = date.today()
-    prompt = f"Generate tweet: {query}, using this context {context}, watch it free and without chatboxes or popup ads using my Google Extension. Link in bio. If event date is {today} say that it is upcoming. If the events date does not match {today} say that it was in the past. Always mention the date(and change it to Month Day, like April 1st) and access to free sites, chatboxes, and clickon ads. Never use () or \n. Creative without being random,use hashtags, and try to keep tweet under 2 sentences"
+    prompt = f"""Generate an original and creative tweet for the event: {query}. Using this context {context}
+        - The tweet must be under 2 sentences and use relevant hashtags.
+        - Mention the event date in 'Month Day' format (e.g., July 24).
+        - Get event date, compare it with todays date: {today}, determine if its before, matches, or after then
+        - If event date in the context is before {today}, use correct past tense grammar. Use a tone that encourages users to relive or rewatch the event.
+        - If event date in the context matches this date: {today}, use an urgent and immediate tone, announcing that the event is live or happening now.
+        - If event date in the context is after this date: {today}, use a forward-looking tone that builds hype and anticipation.
+        - The tweet must include a call to action to watch it for free without chatboxes or popup ads using my Google Extension.
+        - End with the phrase: "Link in bio." 
+        - Be creative but not random"""
  
     response = gem_client.models.generate_content(
         model="gemini-2.0-flash",

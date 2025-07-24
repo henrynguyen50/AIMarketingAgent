@@ -16,8 +16,6 @@ def encode_events():
         event_text = f"Event:{event.strip()}" #add event back
         cleaned_events.append(event_text)
 
-    print(cleaned_events)
-
 
     print("Making embeddings")
     embeddings = model.encode(cleaned_events)
