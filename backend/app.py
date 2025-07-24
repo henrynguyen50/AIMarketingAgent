@@ -49,7 +49,7 @@ DOCUMENT_PATH = "scripts/sportsevents.txt"
 
 #need to be refreshed when agent runs
 embeddings = None
-document = None
+events = None
 
 #convert the JSON query to a string
 class QueryRequest(BaseModel):
@@ -60,10 +60,13 @@ class ImageRequest(BaseModel):
     image_path: str
 
 def load_embeddings():
-    global embeddings, document
+    global embeddings, events
     embeddings = np.load(EMBEDDINGS_PATH)
     with open(DOCUMENT_PATH, "r") as f:
-        document = f.readlines()
+        content = f.read()
+    #do same operation to split events into chunks
+    events = content.split('Event:')[1:]
+    events = [f"Event:{event.strip()}" for event in events]
 
 
 
@@ -84,16 +87,17 @@ def get_events(request: QueryRequest): #request is the query
     query_embedding = model.encode(query)
 
     
-    top_results = util.semantic_search(query_embedding, embeddings, top_k=3)[0] #[0] to remove the query number so only have tensor scores 
+    top_results = util.semantic_search(query_embedding, embeddings, top_k=1)[0] #[0] to remove the query number so only have tensor scores 
     context = []
     for res in top_results:
         idx = res['corpus_id']
 
         context.append({
-            "event": document[idx]
+            "event": events[idx]
         })
+    print(context)
     today = date.today()
-    prompt = f"Generate tweet: {query}, using this context {context}, watch it free and without chatboxes or popup ads using my Google Extension Link in bio. If event date is {today} say that it is upcoming. If the events date does not match {today} say that it was in the past. Always mention the date(and change it to Month Day, like April 1st) and access to free sites, chatboxes, and clickon ads. Never use () or \n. Creative without being random and try to keep tweet under 2 sentences"
+    prompt = f"Generate tweet: {query}, using this context {context}, watch it free and without chatboxes or popup ads using my Google Extension. Link in bio. If event date is {today} say that it is upcoming. If the events date does not match {today} say that it was in the past. Always mention the date(and change it to Month Day, like April 1st) and access to free sites, chatboxes, and clickon ads. Never use () or \n. Creative without being random,use hashtags, and try to keep tweet under 2 sentences"
  
     response = gem_client.models.generate_content(
         model="gemini-2.0-flash",

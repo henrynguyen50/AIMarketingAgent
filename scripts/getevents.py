@@ -50,6 +50,9 @@ def remove_blank_lines(file):
     ]
     file.write_text('\n'.join(filtered))
         
+event_ids = [4444, 4563, 4449, 5293, 4424, 4391, 4387]
+events_file_path = "scripts/sportsevents.txt"
+if __name__ == "__main__":
 
-
+    lookup_events(event_ids, events_file_path)
 
