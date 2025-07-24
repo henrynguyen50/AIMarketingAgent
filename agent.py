@@ -13,7 +13,7 @@ embeddings_file_path = "models/events.npy"
 def run_pipeline():
     #need to use appending to file since using for loop
     #easier to just remove the file everytime and make a new one
-    os.remove('events_file_path')
+    os.remove(events_file_path)
     lookup_events(event_ids, events_file_path)
     
     encode_events()

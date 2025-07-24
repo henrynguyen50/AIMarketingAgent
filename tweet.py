@@ -2,16 +2,17 @@ import requests
 from google import genai
 import requests
 import time
+import os
 def genTweet():
     try:
-        api_url = "http://127.0.0.1:8000/gentweet"
+        gen_api_url = "http://127.0.0.1:8000/gentweet"
 
         topics = ["AEW", "WWE", "Stardom", "NJPW"]
         for promotion in topics:
             payload = {
                 "query": f"Make a tweet for {promotion}"
             }
-            response = requests.post(api_url, json=payload)
+            response = requests.post(gen_api_url, json=payload)
 
             if response.status_code == 200:
                 print("Success! API Response:")
@@ -21,19 +22,32 @@ def genTweet():
                 tweet = tweet.strip() 
                 print(tweet)
 
-                api_url = "http://127.0.0.1:8000/posttweet"
+                # Look for image file with promotion name
+                image_path = f"{promotion}.jpg"
+                
+                if os.path.exists(image_path):
+                    # Post tweet with image
+                    tweet_api_url = "http://127.0.0.1:8000/posttweetwithimage"
+                    tweet_payload = {
+                        "query": tweet,
+                        "image_path": image_path
+                    }
+                else:
+                    # Post tweet without image
+                    tweet_api_url = "http://127.0.0.1:8000/posttweet"
+                    tweet_payload = {
+                        "query": tweet
+                    }
 
-                payload = {
-                    "query": tweet
-                }
-                response = requests.post(api_url, json=payload)
-                time(600)
+                response = requests.post(tweet_api_url, json=tweet_payload)
+                
             else:
                 print(f"Error: Received status code {response.status_code}")
                 print("Response:", response.text)
+            time.sleep(600)
 
     except requests.exceptions.ConnectionError as e:
-        print(f"Connection Error: Could not connect to the server at {api_url}.")
+        print(f"Connection Error: Could not connect to the server.")
         print("Please make sure your FastAPI server is running.")
 
 

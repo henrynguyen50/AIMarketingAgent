@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Request, Depends
+from fastapi import FastAPI, Request, Depends, File, UploadFile
 from pydantic import BaseModel #like requests from flask
 import numpy as np
 import tweepy
@@ -8,6 +8,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from backend.ratelimiter import RateLimiter
 import os 
 from google import genai
+from datetime import date
+from pathlib import Path
 from dotenv import load_dotenv
 load_dotenv()
 
@@ -53,6 +55,10 @@ document = None
 class QueryRequest(BaseModel):
     query: str
 
+class ImageRequest(BaseModel):
+    query: str
+    image_path: str
+
 def load_embeddings():
     global embeddings, document
     embeddings = np.load(EMBEDDINGS_PATH)
@@ -78,7 +84,7 @@ def get_events(request: QueryRequest): #request is the query
     query_embedding = model.encode(query)
 
     
-    top_results = util.semantic_search(query_embedding, embeddings, top_k=5)[0] #[0] to remove the query number so only have tensor scores 
+    top_results = util.semantic_search(query_embedding, embeddings, top_k=3)[0] #[0] to remove the query number so only have tensor scores 
     context = []
     for res in top_results:
         idx = res['corpus_id']
@@ -86,8 +92,8 @@ def get_events(request: QueryRequest): #request is the query
         context.append({
             "event": document[idx]
         })
-    
-    prompt = f"Generate tweet: {query}, using this context {context}, watch it free and without chatboxes or popup ads using my extension Link in bio. Always mention access to free sites, chatboxes, and clickon ads. Never use () or \n. Creative without being random and try to keep tweet under 2 sentences"
+    today = date.today()
+    prompt = f"Generate tweet: {query}, using this context {context}, watch it free and without chatboxes or popup ads using my Google Extension Link in bio. If event date is {today} say that it is upcoming. If the events date does not match {today} say that it was in the past. Always mention the date(and change it to Month Day, like April 1st) and access to free sites, chatboxes, and clickon ads. Never use () or \n. Creative without being random and try to keep tweet under 2 sentences"
  
     response = gem_client.models.generate_content(
         model="gemini-2.0-flash",
@@ -100,6 +106,19 @@ def get_events(request: QueryRequest): #request is the query
 def post_tweet(request: QueryRequest): #request is the query
     query = request.query.strip()
     client.create_tweet(text=query)
+
+@app.post("/posttweetwithimage")
+def post_tweet_with_image(request: ImageRequest):
+    image_path = request.image_path
+    if not os.path.exists(image_path):
+        return {"error": "Image file not found"}, 400
+    query = request.query.strip()
+    media = api.media_upload(image_path)
+
+    client.create_tweet(text=query, media_ids=[media.media_id])
+
+
+
 
 @app.post("/refresh")
 def refresh_embeddings():
