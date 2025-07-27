@@ -26,16 +26,26 @@ app.add_middleware(
 )
 
 
-api_key =os.getenv("api_key")
-api_secret =os.getenv("api_secret")
+consumer_key =os.getenv("api_key")
+consumer_secret =os.getenv("api_secret")
 bearer_token= os.getenv("bearer_token")
 access_token =os.getenv("access_token")
 access_token_secret=os.getenv("access_token_secret")
 
-client = tweepy.Client(bearer_token, api_key, api_secret, access_token, access_token_secret)
+client = tweepy.Client(
+    consumer_key=consumer_key,
+    consumer_secret=consumer_secret,
+    access_token=access_token,
+    access_token_secret=access_token_secret,
+    bearer_token=bearer_token
+)
 
-auth = tweepy.OAuth1UserHandler(api_key, api_secret, access_token, access_token_secret)
+auth = tweepy.OAuth1UserHandler(consumer_key, consumer_secret, access_token, access_token_secret)
 api = tweepy.API(auth)
+
+rate = api.rate_limit_status()
+print(rate['resources']['media']['/media/upload'])
+print(rate['resources']['tweets&POST']['/tweets&POST'])
 
 gemini_key=os.getenv("GEMINI_API_KEY")
 # The client gets the API key from the environment variable `GEMINI_API_KEY`.
@@ -76,6 +86,7 @@ def load_embeddings():
 def home():
     return {"message": "Hello! This is the home page."}
 
+
 @app.post("/gentweet", dependencies=[Depends(RateLimiter(requests_limit = 10, time_window=60))])
 def get_events(request: QueryRequest): #request is the query
     
@@ -97,14 +108,15 @@ def get_events(request: QueryRequest): #request is the query
         })
     today = date.today()
     prompt = f"""Generate an original and creative tweet for the event: {query}. Using this context {context}
-        - The tweet must be under 2 sentences and use relevant hashtags.
+        - The tweet must be under 2 sentences, under 280 characters, and use relevant hashtags.
         - Mention the event date in 'Month Day' format (e.g., July 24).
         - Get event date, compare it with todays date: {today}, determine if its before, matches, or after then
         - If event date in the context is before {today}, use correct past tense grammar. Use a tone that encourages users to relive or rewatch the event.
         - If event date in the context matches this date: {today}, use an urgent and immediate tone, announcing that the event is live or happening now.
         - If event date in the context is after this date: {today}, use a forward-looking tone that builds hype and anticipation.
-        - The tweet must include a call to action to watch it for free without chatboxes or popup ads using my Google Extension.
+        - The tweet must include a call to action to watch it at no cost/no charge/without paying and without chatboxes or popup ads using my Google Extension.
         - End with the phrase: "Link in bio." 
+        - Do not mention FREE
         - Be creative but not random"""
  
     response = gem_client.models.generate_content(
