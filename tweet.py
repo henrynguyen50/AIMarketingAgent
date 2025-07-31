@@ -7,10 +7,12 @@ def genTweet():
     try:
         gen_api_url = "http://127.0.0.1:8000/gentweet"
 
-        topics = ["AEW", "WWE RAW SMACKDOWN NXT", "NJPW", "Stardom"]
+        topics = ["AEW", "WWE", "NJPW", "Stardom"]
+       
+
         for promotion in topics:
             payload = {
-                "query": f"Make a tweet for {promotion}"
+                "query": f"Make a tweet for {promotion},"
             }
             response = requests.post(gen_api_url, json=payload)
 
@@ -49,7 +51,7 @@ def genTweet():
             else:
                 print(f"Error: Received status code {response.status_code}")
                 print("Response:", response.text)
-            time.sleep(10)
+            time.sleep(60)
 
     except requests.exceptions.ConnectionError as e:
         print(f"Connection Error: Could not connect to the server.")
