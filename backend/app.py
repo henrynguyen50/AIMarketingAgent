@@ -115,6 +115,7 @@ def get_events(request: QueryRequest): #request is the query
         - If event date in the context matches this date: {today}, use an urgent and immediate tone, announcing that the event is live or happening now.
         - If event date in the context is after this date: {today}, use a forward-looking tone that builds hype and anticipation.
         - The tweet must include a call to action to watch it at no cost/no charge/without paying and without chatboxes or popup ads using my Google Extension.
+        - **Identify the last match listed under the "Card:" section in the context and use that as the subject of the tweet.**
         - End with the phrase: "Link in bio." 
         - Do not mention FREE
         - Be creative but not random"""
@@ -149,3 +150,4 @@ def refresh_embeddings():
     load_embeddings()
 
 #to run do uvicorn backend.app:app --reload , dont use reload if testing test cases
+#-m uvicorn backend.app:app in task scheduler
